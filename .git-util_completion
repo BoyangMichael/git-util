@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+_git-util_completions() 
+{
+	case "$COMP_CWORD" in 
+		1)
+			COMPREPLY=($(compgen -W "list info sync alias ignore ignore-reset" -- "${COMP_WORDS[1]}"))
+			;;
+	esac
+}
+
+complete -F _git-util_completions git-util
