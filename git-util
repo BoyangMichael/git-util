@@ -1,0 +1,256 @@
+#!/usr/bin/env bash
+
+#################################################################
+#####                                                       #####
+#####  Utilities for Git                                    #####
+#####  A bash script                                        #####
+#####  Created by Boyang XU                                 #####
+#####                                                       #####
+################################################################# 
+
+
+#######################
+### Main Functionalities
+
+
+# Initial setups
+function initialize {
+    # bin utilities
+    bin_dir=$( dirname "$(realpath "$0")" )
+    # enable colors
+    source "${bin_dir}/headers/colors.h"
+    source "${bin_dir}/headers/utilities.h"
+}
+
+
+function parsing_arg {
+    if [ $# -eq 0 ] ; then
+        warning "This command requires arguments."
+        exit 1
+    fi
+    act=""
+    while [ -n "$1" ] ; do
+        case "$1" in
+            info)
+                act+=$'get-all-repo-info\n'
+                ;;
+            list)
+                act+=$'list-all-repo\n'
+                ;;
+            sync)
+                act+=$'sync-all-repo\n'
+                ;;
+            alias)
+				act+=$'update-repo-aliases\n'
+				target_repo="$2"
+				shift
+				;;
+            --)
+                shift # The double dash makes them parameters
+                break
+                ;;
+            *) echo "Option $1 not recognized" ;;
+        esac
+        shift
+    done
+}
+
+
+# rm-ignored-repo <file>
+function rm-ignored-repo {
+	input="$1"
+	if [ -z "$input" ] ; then input="/dev/stdin" ; fi
+	# ignore repos
+	case "${USER}@${HOSTNAME}" in 
+		xub@irlin358408)
+			cat "$input" | grep -v "IFP-KINETICS"
+			;;
+		Boyang@michaels-macbook-pro.home)
+			cat "$input"
+			;;
+		*)
+			cat "$input"
+			;;
+	esac
+}
+
+
+function get-repo-list {
+	readarray -t repodir < <( find ${HOME} -type d -path ${HOME}/IFP1 -prune -false -o -name ".git" 2>&1 | grep -v "Permission denied" | sed 's/\/.git$//g' | rm-ignored-repo )
+	repo=( "${repodir[@]##*/}" )
+}
+
+function get-repo-category {
+	unset repo_url
+	unset repo_category
+	for i in ${!repodir[@]} ; do
+		repo_url[$i]="$( grep "url = " "${repodir[$i]}/.git/config" | awk 'NR==1{print $3}' )"
+		case "${repo_url[$i]}" in
+			git@github.com:*)
+				repo_category[$i]="$( echo ${repo_url[$i]##*:} | awk -F '/' '{print $1}')"
+				;;
+			https://github.com/*)
+				repo_category[$i]="$( echo ${repo_url[$i]%/*} | awk -F '/' '{print $NF}')"
+				;;
+			*)
+				repo_category[$i]="Others"
+				;;
+		esac
+		case "${repo_category[$i]}" in 
+			BoyangMichael) repo_category[$i]="main" ;;
+			BoyangXU-work) repo_category[$i]="work" ;;
+			BoyangXU-write) repo_category[$i]="write" ;;
+            BoyangXU-fork) repo_category[$i]="fork" ;;
+            *) repo_category[$i]="Others" ;;
+		esac
+	done
+}
+
+# function sort-repo-list {
+# 	tmp_matrix=$(
+# 		for i in ${!repodir[@]} ; do
+# 			printf "%s|%s|%s|%s\n" "${repodir[$i]}" "${repo[$i]}" "${repo_category[$i]}" "${repo_url[$i]}"
+# 		done
+# 	)
+# 	echo "$tmp_matrix" | sort -h -t '|' -k3
+# }
+
+
+function list-all-repo {
+    get-repo-list
+    get-repo-category
+    for i in "${!repo[@]}" ; do
+        printf "%-30s %7s ${dim}%-s${normal}\n" "${repo[$i]}" "${repo_category[$i]}" "${repodir[$i]}"
+    done
+}
+
+function get-git-status {
+    git_status_text=$( git status 2> /dev/null )
+    # Branch info
+    git_branch="$( head -1 .git/HEAD | awk -F '/' '{print $NF}' )"
+    case "$git_branch" in 
+    	master|main)
+			git_branch_color="${dim}"
+			;;
+		*)
+			git_branch_color="${yellow}"
+			;;
+    esac
+    # Relative position with Origin
+    git_origin_status=$( echo "$git_status_text" | sed -n -r '2s/.*Your branch is (ahead|behind) .*/\1/p')
+    case "$git_origin_status" in 
+        "") 
+            git_origin_status="In sync" 
+            git_origin_color="${dim}"
+            ;;
+        ahead) 
+            git_origin_status="PUSH" 
+            git_origin_color="${yellow}"     # need to push
+            ;;
+        behind) 
+            git_origin_status="PULL" # need to pull
+            git_origin_color="${red}"
+            ;;
+    esac
+    # Modification Status
+    if [ -n "$( echo "$git_status_text" | grep "^nothing to commit" )" ] ; then 
+        git_change="No change"
+        git_change_color="${dim}"
+    else 
+        git_change="Changed"
+        git_change_color="${red}"
+    fi
+}
+
+function get-all-repo-info {
+    get-repo-list
+    get-repo-category
+    echo ""
+    printf "${bold}%-$(( $(tput cols) - 56 ))s %10s %20s%12s%12s${normal}\n" "Repository" "Category" "On Branch" "Remote" "Change"
+    print-banner '-'
+    for i in "${!repo[@]}" ; do
+        # go to dir
+        cd "${repodir[$i]}"
+        # update remote info
+        git remote update &>/dev/null
+        # extract git status
+        get-git-status
+        # Print information
+        printf "%-$(( $(tput cols) - 56 ))s %10s ${git_branch_color}%20s${git_origin_color}%12s${git_change_color}%12s${normal}\n" "${repo[$i]}" "${repo_category[$i]}" "${git_branch}" "${git_origin_status}" "${git_change}"
+        # jump out of dir
+        cd "${OLDPWD}"
+    done
+    echo ""
+}
+
+function sync-all-repo {
+    echo ""
+    get-repo-list
+    get-repo-category
+    for i in "${!repo[@]}" ; do
+        # go to dir
+        cd "${repodir[$i]}"
+        # update remote info
+        git remote update &>/dev/null
+        # extract git status
+        get-git-status
+        # Do what is necessary
+        case "${git_change}@${git_origin_status}" in
+            "No change@PUSH")
+                echo -e "${bold}${cyan}==> ${repo[$i]}${normal}: ${bold}${yellow}PUSHING ...${normal}"
+                git push
+                echo ""
+                ;;
+            "No change@PULL")
+                echo -e "${bold}${cyan}==> ${repo[$i]}${normal}: ${bold}${red}PULLING ...${normal}"
+                git pull
+                echo ""
+                ;;
+            "No change@In sync")
+                echo -e "${bold}${cyan}==> ${repo[$i]}${normal}: ${green}Everything is up to date.${normal}"
+                echo ""
+                ;;
+            "Changed"@*)
+                echo -e "${bold}${cyan}==> ${repo[$i]}${normal}: ${red}There are uncommitted changes!${normal}"
+                echo ""
+                ;;                
+        esac 
+        # jump out of dir
+        cd "${OLDPWD}"
+    done
+}
+
+
+function cd-to-repo {
+    get-repo-list
+    # create lookup table
+    declare -A hash
+    for i in ${!repo[@]} ; do
+    	hash[${repo[i]}]="${repodir[i]}"
+    done
+    # cd to repo
+    echo "${hash[$target_repo]}"
+    if [ -n "${hash[$target_repo]}" ] ; then
+    	cd "${hash[$target_repo]}"
+    else
+    	echo "Repository ${target_repo} is not on this computer."
+    fi
+}
+
+function update-repo-aliases {
+	get-repo-list
+	repo_aliases="${HOME}/.git-util_aliases"
+	if [ -f "$repo_aliases" ] ; then rm "$repo_aliases" ; fi
+	touch "$repo_aliases"
+	echo "#!/usr/bin/env bash" > "$repo_aliases"
+	for i in "${!repo[@]}" ; do
+		echo "alias cd]${repo[$i]}='cd \"${repodir[$i]}\" ; ls -l' " >> "$repo_aliases"
+	done
+	echo "Aliases UPDATED! Run 'source ~/.bashrc' to take effect."
+}
+
+#######################
+### Main program
+initialize
+parsing_arg "$@"
+eval "$act"
