@@ -21,7 +21,7 @@ source "${GITUTIL_DIR}/.git-util_aliases" # add this line if you wish to use aut
 | `git-util ignore-reset` | Reset the ignore list by deleting the `.git-util_ignore` file. |
 
 ## Auto-completion
-This program provide auto-completion for commands.
+This program provide auto-completion of commands.
 ```bash
 $ git-util <TAB><TAB>
 alias         ignore        ignore-reset  info          list          sync
