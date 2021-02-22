@@ -19,3 +19,12 @@ source "${GITUTIL_DIR}/.git-util_aliases" # add this line if you wish to use aut
 | `git-util alias`{:.bash} | Generate/update the `.git-util_aliases` file which contains aliases for quickly jumping to directories of your repo. use command `cd]reponame` to jump to the directory of repo `reponame`.  |
 | `git-util ignore <repo1> <repo2> ...`{:.bash} | Tell the program to ignore a certain repo or cetain repos. `<repo>` can be either the name or the directory of the repo. |
 | `git-util ignore-reset`{:.bash} | Reset the ignore list by deleting the `.git-util_ignore` file. |
+
+## Auto-completion
+This program provide auto-completion for commands.
+```bash
+$ git-util <TAB><TAB>
+alias         ignore        ignore-reset  info          list          sync
+$ git-util i<TAB><TAB>
+ignore        ignore-reset  info
+```
