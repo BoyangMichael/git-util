@@ -20,6 +20,10 @@ function initialize {
     # enable colors
     source "${bin_dir}/headers/colors.h"
     source "${bin_dir}/headers/utilities.h"
+    # configuration files
+    repo_config="${bin_dir}/.git-util_config"
+    repo_aliases="${HOME}/.git-util_aliases"
+    repo_ignore="${bin_dir}/.git-util_ignore"
 }
 
 
@@ -29,30 +33,29 @@ function parsing_arg {
         exit 1
     fi
     act=""
-    while [ -n "$1" ] ; do
-        case "$1" in
-            info)
-                act+=$'get-all-repo-info\n'
-                ;;
-            list)
-                act+=$'list-all-repo\n'
-                ;;
-            sync)
-                act+=$'sync-all-repo\n'
-                ;;
-            alias)
-				act+=$'update-repo-aliases\n'
-				target_repo="$2"
-				shift
-				;;
-            --)
-                shift # The double dash makes them parameters
-                break
-                ;;
-            *) echo "Option $1 not recognized" ;;
-        esac
-        shift
-    done
+    case "$1" in
+        info)
+            act+=$'get-all-repo-info\n'
+            ;;
+        list)
+            act+=$'list-all-repo\n'
+            ;;
+        sync)
+            act+=$'sync-all-repo\n'
+            ;;
+        alias)
+			act+=$'update-repo-aliases\n'
+			;;
+        ignore)
+            act+=$'ignore-repo\n'
+            shift
+            ignore_repo=( "$@" )
+            ;;
+        ignore-reset)
+            act+=$'reset-ignore\n'
+            ;;
+        *) echo "Option $1 not recognized" ;;
+    esac
 }
 
 
@@ -61,17 +64,32 @@ function rm-ignored-repo {
 	input="$1"
 	if [ -z "$input" ] ; then input="/dev/stdin" ; fi
 	# ignore repos
-	case "${USER}@${HOSTNAME}" in 
-		xub@irlin358408)
-			cat "$input" | grep -v "IFP-KINETICS"
-			;;
-		Boyang@michaels-macbook-pro.home)
-			cat "$input"
-			;;
-		*)
-			cat "$input"
-			;;
-	esac
+    if [ -f "$repo_ignore" ] ; then
+        cat "$input" | grep -vf "$repo_ignore"
+    else
+        cat "$input"
+    fi
+}
+
+
+function ignore-repo {
+    # test input
+    if [ "${#ignore_repo[@]}" -eq 0 ] ; then 
+        echo "Please enter what to ignore ..."
+        return 1;
+    fi
+    # test existance of .git-util_ignore
+    if [ ! -f "$repo_ignore" ] ; then touch "$repo_ignore" ; fi
+    # write .git-util_ignore
+    for i in "${!ignore_repo[@]}" ; do
+        echo "${ignore_repo[i]}" >> "$repo_ignore"
+    done
+    # remove duplicates
+    sort -u -o "$repo_ignore" "$repo_ignore"
+}
+
+function reset-ignore {
+    if [ -f "$repo_ignore" ] ; then rm "$repo_ignore" ; fi
 }
 
 
