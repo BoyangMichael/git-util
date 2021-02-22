@@ -9,3 +9,14 @@ export PATH="${GITUTIL_DIR}":$PATH
 source "${GITUTIL_DIR}/.git-util_aliases"
 source "${GITUTIL_DIR}/.git-util_completion"
 ```
+
+## List of Actions
+Command | Description
+--- | ---
+`git-util list` | list all repositories under your `$HOME` folder
+
+<!-- - `info`
+- `sync`
+- `alias`
+- `ignore`
+- `ignore-reset` -->
