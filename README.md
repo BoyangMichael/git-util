@@ -12,13 +12,13 @@ source "${GITUTIL_DIR}/.git-util_aliases" # add this line if you wish to use aut
 
 ## List of Actions
 | Command | Description |
-| --- | ------ |
-| `git-util list`{.bash} | list all repositories under your `$HOME` folder. |
-| `git-util info`{:.bash} | list infomation of all your repos: repo name, category, current branch, relation with remote, and any uncommited change.  |
-| `git-util sync`{:.bash} | Automatically do what's necessary (pull/push) for all your repos. |
-| `git-util alias`{:.bash} | Generate/update the `.git-util_aliases` file which contains aliases for quickly jumping to directories of your repo. use command `cd]reponame` to jump to the directory of repo `reponame`.  |
-| `git-util ignore <repo1> <repo2> ...`{:.bash} | Tell the program to ignore a certain repo or cetain repos. `<repo>` can be either the name or the directory of the repo. |
-| `git-util ignore-reset`{:.bash} | Reset the ignore list by deleting the `.git-util_ignore` file. |
+| --- | --- |
+| `git-util list` | list all repositories under your `$HOME` folder. |
+| `git-util info` | list infomation of all your repos: repo name, category, current branch, relation with remote, and any uncommited change.  |
+| `git-util sync` | Automatically do what's necessary (pull/push) for all your repos. |
+| `git-util alias` | Generate/update the `.git-util_aliases` file which contains aliases for quickly jumping to directories of your repo. use command `cd]reponame` to jump to the directory of repo `reponame`.  |
+| `git-util ignore <repo1> <repo2> ...` | Tell the program to ignore a certain repo or cetain repos. `<repo>` can be either the name or the directory of the repo. |
+| `git-util ignore-reset` | Reset the ignore list by deleting the `.git-util_ignore` file. |
 
 ## Auto-completion
 This program provide auto-completion for commands.
