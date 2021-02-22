@@ -10,3 +10,4 @@ _git-util_completions()
 }
 
 complete -F _git-util_completions git-util
+complete -F _git-util_completions gu
