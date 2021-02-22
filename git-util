@@ -22,7 +22,7 @@ function initialize {
     source "${bin_dir}/headers/utilities.h"
     # configuration files
     repo_config="${bin_dir}/.git-util_config"
-    repo_aliases="${HOME}/.git-util_aliases"
+    repo_aliases="${bin_dir}/.git-util_aliases"
     repo_ignore="${bin_dir}/.git-util_ignore"
 }
 
@@ -257,14 +257,15 @@ function cd-to-repo {
 
 function update-repo-aliases {
 	get-repo-list
-	repo_aliases="${HOME}/.git-util_aliases"
 	if [ -f "$repo_aliases" ] ; then rm "$repo_aliases" ; fi
 	touch "$repo_aliases"
 	echo "#!/usr/bin/env bash" > "$repo_aliases"
 	for i in "${!repo[@]}" ; do
 		echo "alias cd]${repo[$i]}='cd \"${repodir[$i]}\" ; ls -l' " >> "$repo_aliases"
 	done
-	echo "Aliases UPDATED! Run 'source ~/.bashrc' to take effect."
+	echo "Aliases UPDATED!"
+    echo "  To take effect, add the following line in your .bashrc :"
+    echo "    source \"${repo_aliases}\""
 }
 
 #######################
