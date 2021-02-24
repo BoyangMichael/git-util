@@ -29,3 +29,24 @@ alias         ignore        ignore-reset  info          list          sync
 $ git-util i<TAB><TAB>
 ignore        ignore-reset  info
 ```
+
+## Aliases to quickly jump to repository directory
+Make sure the following line is added in your bash profile.
+```bash
+source "${GITUTIL_DIR}/.git-util_aliases" # ${GITUTIL_DIR} is path to this repository
+```
+For fisrt-time usage, type the following command to generate the `.git-util_alilases` file which contains the aliases.
+```bash
+git-util alias
+```
+To use it, just type `cd]` followed by the name of the target repository.
+```bash
+[user@hostname:~]$ cd]<TAB><TAB>
+cd]git-util      cd]repo1      cd]repo2
+[user@hostname:~]$ cd]repo1
+[user@hostname:~/path/to/repo1]$ 
+```
+When your list of repo changes, update the aliases using this command again.
+```bash
+git-util alias
+```
