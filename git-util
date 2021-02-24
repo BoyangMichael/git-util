@@ -260,12 +260,18 @@ function update-repo-aliases {
 	if [ -f "$repo_aliases" ] ; then rm "$repo_aliases" ; fi
 	touch "$repo_aliases"
 	echo "#!/usr/bin/env bash" > "$repo_aliases"
+    echo "export GITUTIL_ALIASES=ON" >> "$repo_aliases"
 	for i in "${!repo[@]}" ; do
 		echo "alias cd]${repo[$i]}='cd \"${repodir[$i]}\" ; ls -l' " >> "$repo_aliases"
 	done
 	echo "Aliases UPDATED!"
-    echo "  To take effect, add the following line in your .bashrc :"
-    echo "    source \"${repo_aliases}\""
+    if [ -z "$(env | grep "GITUTIL_ALIASES=ON")" ] ; then
+        echo ""
+        echo "ATTENTION: .git-util_aliases file is not sourced in your bash profile!"
+        echo "Please add the following line in your bash profile (e.g., ~/.bashrc):"
+        echo "source \"${repo_aliases}\""
+        echo ""
+    fi
 }
 
 #######################
