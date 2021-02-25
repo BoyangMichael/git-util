@@ -40,7 +40,8 @@ function parsing_arg {
         list)
             act+=$'list-all-repo\n'
             ;;
-        sync)
+        sync|save)
+			sync_type="$1"
             act+=$'sync-all-repo\n'
             ;;
         alias)
@@ -54,9 +55,9 @@ function parsing_arg {
         ignore-reset)
             act+=$'reset-ignore\n'
             ;;
-        save)
-            act+=$'quick-save\n'
-            ;;
+        # save)
+        #     act+=$'quick-save\n'
+        #     ;;
         *) echo "Option $1 not recognized" ;;
     esac
 }
@@ -230,10 +231,36 @@ function sync-all-repo {
                 echo -e "${bold}${cyan}==> ${repo[$i]}${normal}: ${green}Everything is up to date.${normal}"
                 echo ""
                 ;;
-            "Changed"@*)
-                echo -e "${bold}${cyan}==> ${repo[$i]}${normal}: ${red}There are uncommitted changes!${normal}"
-                echo ""
-                ;;                
+            "Changed@In sync"|"Changed@PUSH")
+				case "$sync_type" in 
+					sync)
+						echo -e "${bold}${cyan}==> ${repo[$i]}${normal}: ${red}There are uncommitted changes!${normal}"
+		                echo ""
+		                ;;
+		            save)
+		                echo -e "${bold}${cyan}==> ${repo[$i]}${normal}:"
+		                echo -e "${red}Committing ...${normal}"
+		                git add --all
+		                git commit -m "quick save @ $(date)"
+		                echo -e "${bold}${yellow}PUSHING ...${normal}"
+		                git push
+		                echo ""
+		                ;;    
+		        esac
+		        ;;
+            "Changed@PULL")
+				case "$sync_type" in 
+					sync)
+						echo -e "${bold}${cyan}==> ${repo[$i]}${normal}: ${red}There are uncommitted changes!${normal}"
+		                echo ""
+		                ;;
+		            save)
+		                echo -e "${bold}${cyan}==> ${repo[$i]}${normal}:"
+		                echo -e "${red}Possible conflict! Behind origin with uncommitted changes!${normal}"
+		                echo ""
+		                ;;    
+		        esac
+		        ;;              
         esac 
         # jump out of dir
         cd "${OLDPWD}"
@@ -282,24 +309,6 @@ function quick-save {
         # jump out of dir
         cd "${OLDPWD}"
     done
-}
-
-
-
-function cd-to-repo {
-    get-repo-list
-    # create lookup table
-    declare -A hash
-    for i in ${!repo[@]} ; do
-    	hash[${repo[i]}]="${repodir[i]}"
-    done
-    # cd to repo
-    echo "${hash[$target_repo]}"
-    if [ -n "${hash[$target_repo]}" ] ; then
-    	cd "${hash[$target_repo]}"
-    else
-    	echo "Repository ${target_repo} is not on this computer."
-    fi
 }
 
 function update-repo-aliases {
