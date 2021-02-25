@@ -55,9 +55,6 @@ function parsing_arg {
         ignore-reset)
             act+=$'reset-ignore\n'
             ;;
-        # save)
-        #     act+=$'quick-save\n'
-        #     ;;
         *) echo "Option $1 not recognized" ;;
     esac
 }
@@ -261,50 +258,6 @@ function sync-all-repo {
 		                ;;    
 		        esac
 		        ;;              
-        esac 
-        # jump out of dir
-        cd "${OLDPWD}"
-    done
-}
-
-function quick-save {
-    get-repo-list
-    for i in "${!repo[@]}" ; do
-        # go to dir
-        cd "${repodir[$i]}"
-        # update remote info
-        git remote update &>/dev/null
-        # extract git status
-        get-git-status
-        # Do what is necessary
-        case "${git_change}@${git_origin_status}" in
-            "No change@PUSH")
-                echo -e "${bold}${cyan}==> ${repo[$i]}${normal}: ${bold}${yellow}PUSHING ...${normal}"
-                git push
-                echo ""
-                ;;
-            "No change@PULL")
-                echo -e "${bold}${cyan}==> ${repo[$i]}${normal}: ${bold}${red}PULLING ...${normal}"
-                git pull
-                echo ""
-                ;;
-            "No change@In sync")
-                echo -e "${bold}${cyan}==> ${repo[$i]}${normal}: ${green}Everything is up to date.${normal}"
-                echo ""
-                ;;
-            "Changed@In sync"|"Changed@PUSH")
-                echo -e "${bold}${cyan}==> ${repo[$i]}${normal}:"
-                echo -e "${red}Committing ...${normal}"
-                git add --all
-                git commit -m "quick save @ $(date)"
-                echo -e "${bold}${yellow}PUSHING ...${normal}"
-                git push
-                echo ""
-                ;;    
-            "Changed@PULL")
-                echo -e "${bold}${cyan}==> ${repo[$i]}${normal}: ${red}Possible conflict! Behind origin with uncommitted changes!${normal}"
-                echo ""
-                ;;             
         esac 
         # jump out of dir
         cd "${OLDPWD}"

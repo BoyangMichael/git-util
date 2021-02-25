@@ -4,7 +4,7 @@ _git-util_completions()
 {
 	case "$COMP_CWORD" in 
 		1)
-			COMPREPLY=($(compgen -W "list info sync alias ignore ignore-reset" -- "${COMP_WORDS[1]}"))
+			COMPREPLY=($(compgen -W "list info sync save alias ignore ignore-reset" -- "${COMP_WORDS[1]}"))
 			;;
 	esac
 }
