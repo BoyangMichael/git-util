@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Search in the following directories:
+# Please use QUOTED FULL PATH
+SEARCH_DIR=(
+	"$HOME"
+	)
+
+# DO NOT search in the following directories:
+# Please use QUOTED FULL PATH
+DO_NOT_SEARCH_DIR=(
+
+	)
