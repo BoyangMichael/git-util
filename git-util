@@ -29,7 +29,11 @@ function initialize {
     if [ -f "$config_file" ] ; then source "$config_file" ; fi
     ## default: SEARCH_DIR=( "${HOME}" )
     ## default: DO_NOT_SEARCH_DIR=()
+    ## default: AUTHOR_OR_CATEGORY="author"
+    ## default: SORT_BY_CATEGORY="off"
     if ! (( "${#SEARCH_DIR[@]}" )) ; then SEARCH_DIR=( "${HOME}" ) ; fi
+    if [ -z "$AUTHOR_OR_CATEGORY" ] || [ -z "$( echo "$CATEGORY_LIST" | sed 's/[[:space:]]//g' )" ] ; then AUTHOR_OR_CATEGORY="author" ; fi
+    if [ -z "$SORT_BY_CATEGORY" ] ; then SORT_BY_CATEGORY="off" ; fi
 }
 
 
@@ -113,49 +117,57 @@ function get-repo-list {
 
 function get-repo-category {
 	unset repo_url
+	unset repo_author
 	unset repo_category
 	for i in ${!repodir[@]} ; do
+		# Get remote url
 		repo_url[$i]="$( grep "url = " "${repodir[$i]}/.git/config" | awk 'NR==1{print $3}' )"
+		# Get author
 		case "${repo_url[$i]}" in
 			git@github.com:*)
-				repo_category[$i]="$( echo ${repo_url[$i]##*:} | awk -F '/' '{print $1}')"
+				repo_author[$i]="$( echo ${repo_url[$i]##*:} | awk -F '/' '{print $1}')"
 				;;
 			https://github.com/*)
-				repo_category[$i]="$( echo ${repo_url[$i]%/*} | awk -F '/' '{print $NF}')"
+				repo_author[$i]="$( echo ${repo_url[$i]%/*} | awk -F '/' '{print $NF}')"
 				;;
 			*)
-				repo_category[$i]="others"
+				repo_author[$i]="others"
 				;;
 		esac
-		case "${repo_category[$i]}" in 
-			BoyangMichael) repo_category[$i]="main" ;;
-			BoyangXU-work) repo_category[$i]="work" ;;
-			BoyangXU-write) repo_category[$i]="write" ;;
-            BoyangXU-fork) repo_category[$i]="fork" ;;
-            *) repo_category[$i]="Others" ;;
+		# categorize
+		case "$AUTHOR_OR_CATEGORY" in 
+			Author)
+				repo_category[$i]="${repo_author[$i]}"
+				;;
+			Category)
+				repo_category[$i]="$( echo "$CATEGORY_LIST" | sed -r -e 's/^\s+//g' -e 's/\s+$//g' | awk -F ',' -v author="${repo_author[$i]}" '$1==author{print $2}' )"
+				if [ -z "${repo_category[$i]}" ] ; then repo_category[$i]="others" ; fi
+				;;
 		esac
 	done
 }
 
 function sort-repo-list {
-	tmp_matrix=$(
-		for i in ${!repodir[@]} ; do
-			printf "%s,%s,%s\n" "${repo[$i]}" "${repo_category[$i]}" "${repodir[$i]}"
-		done | sort -t ',' -k2
-	)
-	readarray -t repo < <( echo "$tmp_matrix" | awk -F ',' '{print $1}' )
-	readarray -t repo_category < <( echo "$tmp_matrix" | awk -F ',' '{print $2}' )
-	readarray -t repodir < <( echo "$tmp_matrix" | awk -F ',' '{print $3}' )
-	unset tmp_matrix
+	if [ "$SORT_BY_CATEGORY" = "on" ] ; then
+		tmp_matrix=$(
+			for i in ${!repodir[@]} ; do
+				printf "%s,%s,%s\n" "${repo[$i]}" "${repo_category[$i]}" "${repodir[$i]}"
+			done | sort -t ',' -k2
+		)
+		readarray -t repo < <( echo "$tmp_matrix" | awk -F ',' '{print $1}' )
+		readarray -t repo_category < <( echo "$tmp_matrix" | awk -F ',' '{print $2}' )
+		readarray -t repodir < <( echo "$tmp_matrix" | awk -F ',' '{print $3}' )
+		unset tmp_matrix
+	fi
 }
 
 
 function list-all-repo {
     get-repo-list
     get-repo-category
-    # sort-repo-list
+    sort-repo-list
     for i in "${!repo[@]}" ; do
-        printf "%-30s %7s ${dim}%-s${normal}\n" "${repo[$i]}" "${repo_category[$i]}" "${repodir[$i]}"
+        printf "%-25s %-15s ${dim}%-s${normal}\n" "${repo[$i]}" "${repo_category[$i]}" "${repodir[$i]}"
     done
 }
 
@@ -200,9 +212,9 @@ function get-git-status {
 function get-all-repo-info {
     get-repo-list
     get-repo-category
-    # sort-repo-list
+    sort-repo-list
     echo ""
-    printf "${bold}%-$(( $(tput cols) - 56 ))s %10s %20s%12s%12s${normal}\n" "Repository" "Category" "On Branch" "Remote" "Change"
+    printf "${bold}%-$(( $(tput cols) - 61 ))s %15s %20s%12s%12s${normal}\n" "Repository" "$AUTHOR_OR_CATEGORY" "Branch" "Remote" "Change"
     print-banner '-'
     for i in "${!repo[@]}" ; do
         # go to dir
@@ -212,7 +224,7 @@ function get-all-repo-info {
         # extract git status
         get-git-status
         # Print information
-        printf "%-$(( $(tput cols) - 56 ))s %10s ${git_branch_color}%20s${git_origin_color}%12s${git_change_color}%12s${normal}\n" "${repo[$i]}" "${repo_category[$i]}" "${git_branch}" "${git_origin_status}" "${git_change}"
+        printf "%-$(( $(tput cols) - 61 ))s %15s ${git_branch_color}%20s${git_origin_color}%12s${git_change_color}%12s${normal}\n" "${repo[$i]}" "${repo_category[$i]}" "${git_branch}" "${git_origin_status}" "${git_change}"
         # jump out of dir
         cd "${OLDPWD}"
     done

@@ -1,13 +1,31 @@
 #!/usr/bin/env bash
 
 # Search in the following directories:
-# Please use QUOTED FULL PATH
+	# Please use QUOTED FULL PATH
 SEARCH_DIR=(
 	"$HOME"
 	)
 
 # DO NOT search in the following directories:
-# Please use QUOTED FULL PATH
+	# Please use QUOTED FULL PATH
 DO_NOT_SEARCH_DIR=(
 
 	)
+
+# Display author or category 
+# Option: Author/Category
+	# Author: display the author of a repo
+	# Category: display the alias of the author
+AUTHOR_OR_CATEGORY="Author"
+
+# User defined list of categories
+	# column 1 : author
+	# column 2 : category
+	# seperate by comma ","
+CATEGORY_LIST="
+
+"
+
+# Sort by category 
+# Option: on/off
+SORT_BY_CATEGORY="off"
