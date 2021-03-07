@@ -15,22 +15,31 @@
 
 # Initial setups
 function initialize {
-    # bin utilities
+    # bin dir
     bin_dir=$( dirname "$(realpath "$0")" )
-    # enable colors and utilities
-    source "${bin_dir}/headers/colors.h"
-    source "${bin_dir}/headers/utilities.h"
+    # enable colors
+	bold=$(tput bold)
+	dim=$(tput setaf 8)
+	normal=$(tput sgr0)
+	black=$(tput setaf 0)
+	red=$(tput setaf 1)
+	green=$(tput setaf 2)
+	yellow=$(tput setaf 3)
+	blue=$(tput setaf 4)
+	magenta=$(tput setaf 5)
+	cyan=$(tput setaf 6)
+	white=$(tput setaf 7)
     # configuration files
     config_file="${bin_dir}/config"
     repo_aliases="${bin_dir}/.git-util_aliases"
     repo_ignore="${bin_dir}/.git-util_ignore"
-    # Config Variables
-    unset SEARCH_DIR DO_NOT_SEARCH_DIR
+    # configuration variables
+	    ## default: SEARCH_DIR=( "${HOME}" )
+	    ## default: DO_NOT_SEARCH_DIR=()
+	    ## default: AUTHOR_OR_CATEGORY="author"
+	    ## default: SORT_BY_CATEGORY="off"
+    unset SEARCH_DIR DO_NOT_SEARCH_DIR AUTHOR_OR_CATEGORY SORT_BY_CATEGORY
     if [ -f "$config_file" ] ; then source "$config_file" ; fi
-    ## default: SEARCH_DIR=( "${HOME}" )
-    ## default: DO_NOT_SEARCH_DIR=()
-    ## default: AUTHOR_OR_CATEGORY="author"
-    ## default: SORT_BY_CATEGORY="off"
     if ! (( "${#SEARCH_DIR[@]}" )) ; then SEARCH_DIR=( "${HOME}" ) ; fi
     if [ -z "$AUTHOR_OR_CATEGORY" ] || [ -z "$( echo "$CATEGORY_LIST" | sed 's/[[:space:]]//g' )" ] ; then AUTHOR_OR_CATEGORY="author" ; fi
     if [ -z "$SORT_BY_CATEGORY" ] ; then SORT_BY_CATEGORY="off" ; fi
@@ -67,6 +76,23 @@ function parsing_arg {
             ;;
         *) echo "Option $1 not recognized" ;;
     esac
+}
+
+
+# print-banner
+# Description: 	Print centered banner on terminal
+# Usage: 		print-banner "<text>"
+# Source:       https://unix.stackexchange.com/a/267730
+function print-banner {
+	char="$1"
+	text="$2"
+	termwidth="$(tput cols)"
+	padding="$(printf '%0.1s' ${char}{1..500})"
+	if [ -z "$text" ] ; then
+		printf "%*.*s\n" "$termwidth" "$termwidth" "$padding"
+	else
+		printf '%*.*s %s %*.*s\n' 0 "$(((termwidth-2-${#text})/2))" "$padding" "$text" 0 "$(((termwidth-1-${#text})/2))" "$padding"
+	fi
 }
 
 
