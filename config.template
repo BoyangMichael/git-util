@@ -22,6 +22,7 @@ AUTHOR_OR_CATEGORY="Author"
 	# column 1 : author
 	# column 2 : category
 	# seperate by comma ","
+	# e.g. MikeMichaelson-work,work
 CATEGORY_LIST="
 
 "
