@@ -1,6 +1,10 @@
 # git-util
 Utilities for Git
 
+> ℹ️ **DISCLAIMER**
+> 
+> I'm not a programmer... So no maintenance for this repository is guaranteed. Everything is subject to my availability and mood. Thanks for understanding.
+
 ## Install
 Add the following lines in your bash profile (e.g., `~/.bashrc`)
 ```bash
@@ -50,3 +54,6 @@ When your list of repo changes, update the aliases using this command again.
 ```bash
 git-util alias
 ```
+
+## Customization
+Some behaviors of the program can be customized by creating a file named `config` using the template [config.template](config.template) under the root directory. Please refer to [config.template](config.template) for what can be customized.
