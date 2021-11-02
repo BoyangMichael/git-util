@@ -38,9 +38,10 @@ function initialize {
 	    ## default: DO_NOT_SEARCH_DIR=()
 	    ## default: AUTHOR_OR_CATEGORY="author"
 	    ## default: SORT_BY_CATEGORY="off"
-    unset SEARCH_DIR DO_NOT_SEARCH_DIR AUTHOR_OR_CATEGORY SORT_BY_CATEGORY
+    unset SEARCH_DIR MAXDEPTH DO_NOT_SEARCH_DIR AUTHOR_OR_CATEGORY SORT_BY_CATEGORY
     if [ -f "$config_file" ] ; then source "$config_file" ; fi
     if ! (( "${#SEARCH_DIR[@]}" )) ; then SEARCH_DIR=( "${HOME}" ) ; fi
+    MAXDEPTH=${MAXDEPTH:-6}
     if [ -z "$AUTHOR_OR_CATEGORY" ] || [ -z "$( echo "$CATEGORY_LIST" | sed 's/[[:space:]]//g' )" ] ; then AUTHOR_OR_CATEGORY="author" ; fi
     if [ -z "$SORT_BY_CATEGORY" ] ; then SORT_BY_CATEGORY="off" ; fi
 }
@@ -137,7 +138,7 @@ function get-repo-list {
 	else
 		do_not_search_dir_pattern=""
 	fi
-	readarray -t repodir < <( eval "find $search_dir_pattern -type d $do_not_search_dir_pattern -name \".git\" 2>&1" | grep -v "Permission denied" | sort -u | sed 's/\/.git$//g' | rm-ignored-repo )
+	readarray -t repodir < <( eval "find $search_dir_pattern -maxdepth ${MAXDEPTH} -type d $do_not_search_dir_pattern -name \".git\" 2>&1" | grep -v "Permission denied" | sort -u | sed 's/\/.git$//g' | rm-ignored-repo )
 	repo=( "${repodir[@]##*/}" )
 }
 

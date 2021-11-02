@@ -6,6 +6,9 @@ SEARCH_DIR=(
 	"$HOME"
 	)
 
+# Maxdepth to search
+MAXDEPTH=6
+
 # DO NOT search in the following directories:
 	# Please use QUOTED FULL PATH
 DO_NOT_SEARCH_DIR=(
